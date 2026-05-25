@@ -11,10 +11,6 @@ Use it for SMPs, survival servers, lifesteal servers, roleplay communities, even
 - Website: https://sqware.gg
 - Support and plugin updates: https://discord.sqware.gg
 
-## Screenshots
-
-Screenshot capture guidance is available in [docs/screenshots](docs/screenshots/README.md).
-
 ## Compatibility
 
 - Server software: Paper, with modern Paper chat support and legacy chat fallback
