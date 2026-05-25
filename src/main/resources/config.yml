@@ -1,0 +1,80 @@
+# ChatPlus
+# Used for update checks.
+# Do not change unless you know what you are doing.
+config-version: 1
+
+defaults:
+  # Initial mode for players without saved preferences.
+  mode: "normal"
+
+  # Players still see their own chat messages even if their mode hides regular chat.
+  always-show-own-chat: true
+
+  # Players with chatplus.bypass are visible to everyone.
+  sender-bypass-permission: true
+
+mentions:
+  enabled: true
+  # Matches @PlayerName in regular chat.
+  prefix: "@"
+  case-sensitive: false
+  # Also treat the bare player name as a mention.
+  match-without-prefix: false
+
+modes:
+  normal:
+    regular-chat: true
+    mentions: true
+    private-message: true
+    teleport-request: true
+    server-notice: true
+    staff-notice: true
+    purchase: true
+    warning: true
+
+  quiet:
+    regular-chat: false
+    mentions: true
+    private-message: true
+    teleport-request: true
+    server-notice: true
+    staff-notice: true
+    purchase: true
+    warning: true
+
+  focus:
+    regular-chat: false
+    mentions: true
+    private-message: true
+    teleport-request: true
+    server-notice: true
+    staff-notice: true
+    purchase: true
+    warning: true
+
+  off:
+    regular-chat: false
+    mentions: false
+    private-message: true
+    teleport-request: true
+    server-notice: true
+    staff-notice: true
+    purchase: true
+    warning: true
+
+notifications:
+  # Used by /chatadmin notify and ChatPlusApi.send.
+  format: "&8[&b{category_label}&8] &f{message}"
+
+  # Used by /chatadmin broadcast and ChatPlusApi.broadcast.
+  broadcast-format: "&8[&b{category_label}&8] &f{message}"
+
+messages:
+  prefix: "&bChat+ &8> &f"
+  mode-changed: "&7Chat mode set to &f{mode}&7."
+  category-allowed: "&7Allowed &f{category}&7."
+  category-blocked: "&7Blocked &f{category}&7."
+  category-reset: "&7Reset &f{category}&7 to your mode default."
+  settings-reset: "&7Your ChatPlus preferences were reset."
+  mentions-on: "&7Mentions are now &fenabled&7."
+  mentions-off: "&7Mentions are now &fdisabled&7."

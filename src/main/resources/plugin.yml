@@ -1,0 +1,35 @@
+name: ChatPlus
+version: 0.1.0-SNAPSHOT
+main: dev.chatplus.ChatPlusPlugin
+api-version: '1.18'
+author: SQWARE / Conflict
+website: https://sqware.gg
+description: Player chat focus modes and categorized notifications for Paper servers.
+commands:
+  chat:
+    description: Manage your ChatPlus focus mode and category preferences.
+    usage: /chat
+    aliases:
+      - chatplus
+      - focus
+  chatadmin:
+    description: Manage ChatPlus.
+    usage: /chatadmin
+    aliases:
+      - cpa
+      - chatplusadmin
+permissions:
+  chatplus.command:
+    description: Allows players to manage their chat preferences.
+    default: true
+  chatplus.admin:
+    description: Allows administrative ChatPlus commands.
+    default: op
+    children:
+      chatplus.notify: true
+  chatplus.bypass:
+    description: Allows a sender's regular chat to bypass recipient filters.
+    default: op
+  chatplus.notify:
+    description: Allows sending categorized ChatPlus notifications.
+    default: op
