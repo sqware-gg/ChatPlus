@@ -11,6 +11,10 @@ Use it for SMPs, survival servers, lifesteal servers, roleplay communities, even
 - Website: https://sqware.gg
 - Support and plugin updates: https://discord.sqware.gg
 
+## Screenshots
+
+Screenshot capture guidance is available in [docs/screenshots](docs/screenshots/README.md).
+
 ## Compatibility
 
 - Server software: Paper, with modern Paper chat support and legacy chat fallback
@@ -146,6 +150,8 @@ ChatPlusApi.send(player, "server-notice", "Restart in 5 minutes.");
 ChatPlus does not overwrite your existing `config.yml`. If the bundled config changes, the plugin writes `plugins/ChatPlus/config-new.yml` so you can compare and copy new options.
 
 Player preferences are stored separately in `players.yml`.
+
+Release history is tracked in [CHANGELOG.md](CHANGELOG.md).
 
 ## Build From Source
 
