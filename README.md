@@ -168,6 +168,10 @@ target/ChatPlus-0.1.0.jar
 - Mentions do not pass through: check `mentions.prefix`, `mentions.case-sensitive`, and `/chat mentions`.
 - A sender should always be visible: grant that sender `chatplus.bypass`.
 
+## License
+
+ChatPlus is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 ## Support
 
 For setup help, compatibility questions, and plugin updates, use https://discord.sqware.gg.
