@@ -153,7 +153,7 @@ mvn package
 The compiled jar is written to:
 
 ```text
-target/ChatPlus-0.1.0-SNAPSHOT.jar
+target/ChatPlus-0.1.0.jar
 ```
 
 ## Troubleshooting

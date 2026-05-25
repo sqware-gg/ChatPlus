@@ -1,5 +1,5 @@
 name: ChatPlus
-version: 0.1.0-SNAPSHOT
+version: 0.1.0
 main: dev.chatplus.ChatPlusPlugin
 api-version: '1.18'
 author: SQWARE / Conflict
