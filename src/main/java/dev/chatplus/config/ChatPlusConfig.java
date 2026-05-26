@@ -49,16 +49,16 @@ public final class ChatPlusConfig {
         mentionCaseSensitive = config.getBoolean("mentions.case-sensitive", false);
         mentionMatchWithoutPrefix = config.getBoolean("mentions.match-without-prefix", false);
         modeDefaults = readModeDefaults(config);
-        notificationFormat = string(config.getString("notifications.format"), "&8[&b{category_label}&8] &f{message}");
-        broadcastFormat = string(config.getString("notifications.broadcast-format"), "&8[&b{category_label}&8] &f{message}");
-        messagePrefix = string(config.getString("messages.prefix"), "&bChat+ &8> &f");
-        modeChangedMessage = string(config.getString("messages.mode-changed"), "&7Chat mode set to &f{mode}&7.");
+        notificationFormat = string(config.getString("notifications.format"), "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}");
+        broadcastFormat = string(config.getString("notifications.broadcast-format"), "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}");
+        messagePrefix = string(config.getString("messages.prefix"), "&#2b98fdChatPlus &8› &7");
+        modeChangedMessage = string(config.getString("messages.mode-changed"), "&7Chat mode set to &#2b98fd{mode}&7.");
         categoryAllowedMessage = string(config.getString("messages.category-allowed"), "&7Allowed &f{category}&7.");
         categoryBlockedMessage = string(config.getString("messages.category-blocked"), "&7Blocked &f{category}&7.");
-        categoryResetMessage = string(config.getString("messages.category-reset"), "&7Reset &f{category}&7 to your mode default.");
-        settingsResetMessage = string(config.getString("messages.settings-reset"), "&7Your ChatPlus preferences were reset.");
-        mentionsOnMessage = string(config.getString("messages.mentions-on"), "&7Mentions are now &fenabled&7.");
-        mentionsOffMessage = string(config.getString("messages.mentions-off"), "&7Mentions are now &fdisabled&7.");
+        categoryResetMessage = string(config.getString("messages.category-reset"), "&7Reset &f{category}&7.");
+        settingsResetMessage = string(config.getString("messages.settings-reset"), "&7Chat preferences reset.");
+        mentionsOnMessage = string(config.getString("messages.mentions-on"), "&7Mentions are &#57F287enabled&7.");
+        mentionsOffMessage = string(config.getString("messages.mentions-off"), "&7Mentions are &#ED4245disabled&7.");
     }
 
     private EnumMap<ChatMode, EnumSet<ChatCategory>> readModeDefaults(FileConfiguration config) {

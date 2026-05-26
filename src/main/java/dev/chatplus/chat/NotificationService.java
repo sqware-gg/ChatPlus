@@ -1,5 +1,6 @@
 package dev.chatplus.chat;
 
+import dev.chatplus.api.event.ChatPlusBroadcastEvent;
 import dev.chatplus.config.ChatPlusConfig;
 import dev.chatplus.util.Text;
 import org.bukkit.Bukkit;
@@ -32,6 +33,7 @@ public final class NotificationService {
                 sent++;
             }
         }
+        Bukkit.getPluginManager().callEvent(new ChatPlusBroadcastEvent(category, message, sent));
         return sent;
     }
 

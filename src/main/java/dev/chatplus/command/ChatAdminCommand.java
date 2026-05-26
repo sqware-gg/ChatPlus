@@ -33,7 +33,7 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             if (!canAdmin(sender) && !canNotify(sender)) {
-                message(sender, "&cNo permission.");
+                message(sender, "&#ED4245No permission.");
                 return true;
             }
             help(sender);
@@ -80,7 +80,7 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
         if (canAdmin(sender)) {
             return true;
         }
-        message(sender, "&cNo permission.");
+        message(sender, "&#ED4245No permission.");
         return false;
     }
 
@@ -88,7 +88,7 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
         if (canNotify(sender)) {
             return true;
         }
-        message(sender, "&cNo permission.");
+        message(sender, "&#ED4245No permission.");
         return false;
     }
 
@@ -103,95 +103,95 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
     private void reload(CommandSender sender) {
         config.reload();
         settingsStore.reload();
-        message(sender, "&7ChatPlus reloaded.");
+        message(sender, "&#57F287Chat reloaded.");
     }
 
     private void set(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            message(sender, "&cUsage: /chatadmin set <player> <mode>");
+            message(sender, "&7Usage: &#2b98fd/chatadmin set <player> <mode>");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            message(sender, "&cPlayer is not online.");
+            message(sender, "&#ED4245Player is not online.");
             return;
         }
         ChatMode mode = ChatMode.from(args[2]).orElse(null);
         if (mode == null) {
-            message(sender, "&cUnknown mode.");
+            message(sender, "&#ED4245Unknown mode.");
             return;
         }
         PlayerChatSettings settings = settingsStore.settings(target.getUniqueId());
         settings.mode(mode);
         settingsStore.save();
-        message(sender, "&7Set &f" + target.getName() + "&7 to &f" + mode.label() + "&7.");
+        message(sender, "&7Set &f" + target.getName() + "&7 to &#2b98fd" + mode.label() + "&7.");
     }
 
     private void reset(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            message(sender, "&cUsage: /chatadmin reset <player>");
+            message(sender, "&7Usage: &#2b98fd/chatadmin reset <player>");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            message(sender, "&cPlayer is not online.");
+            message(sender, "&#ED4245Player is not online.");
             return;
         }
         settingsStore.reset(target.getUniqueId());
-        message(sender, "&7Reset ChatPlus preferences for &f" + target.getName() + "&7.");
+        message(sender, "&7Reset chat preferences for &f" + target.getName() + "&7.");
     }
 
     private void status(CommandSender sender, String[] args) {
         if (args.length < 2) {
-            message(sender, "&cUsage: /chatadmin status <player>");
+            message(sender, "&7Usage: &#2b98fd/chatadmin status <player>");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            message(sender, "&cPlayer is not online.");
+            message(sender, "&#ED4245Player is not online.");
             return;
         }
         PlayerChatSettings settings = settingsStore.settings(target.getUniqueId());
-        message(sender, "&7" + target.getName() + ": mode &f" + settings.mode().label()
+        message(sender, "&f" + target.getName() + " &8› &7mode &#2b98fd" + settings.mode().label()
                 + "&7, mentions &f" + (settings.mentionsEnabled() ? "on" : "off") + "&7.");
     }
 
     private void notify(CommandSender sender, String[] args) {
         if (args.length < 4) {
-            message(sender, "&cUsage: /chatadmin notify <player> <category> <message>");
+            message(sender, "&7Usage: &#2b98fd/chatadmin notify <player> <category> <message>");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[1]);
         if (target == null) {
-            message(sender, "&cPlayer is not online.");
+            message(sender, "&#ED4245Player is not online.");
             return;
         }
         ChatCategory category = ChatCategory.from(args[2]).orElse(null);
         if (category == null) {
-            message(sender, "&cUnknown category.");
+            message(sender, "&#ED4245Unknown category.");
             return;
         }
         boolean sent = notificationService.send(target, category, joinArgs(args, 3));
-        message(sender, sent ? "&7Sent categorized notification." : "&7Target currently blocks that category.");
+        message(sender, sent ? "&#57F287Notification sent." : "&7Target blocks that category.");
     }
 
     private void broadcast(CommandSender sender, String[] args) {
         if (args.length < 3) {
-            message(sender, "&cUsage: /chatadmin broadcast <category> <message>");
+            message(sender, "&7Usage: &#2b98fd/chatadmin broadcast <category> <message>");
             return;
         }
         ChatCategory category = ChatCategory.from(args[1]).orElse(null);
         if (category == null) {
-            message(sender, "&cUnknown category.");
+            message(sender, "&#ED4245Unknown category.");
             return;
         }
         int sent = notificationService.broadcast(category, joinArgs(args, 2));
-        message(sender, "&7Sent categorized broadcast to &f" + sent + "&7 players.");
+        message(sender, "&#57F287Broadcast sent &8› &f" + sent + " &7players.");
     }
 
     private void help(CommandSender sender) {
-        message(sender, "&7Commands: &f/chatadmin reload&7, &f/chatadmin set <player> <mode>&7, &f/chatadmin reset <player>");
-        message(sender, "&7Notify: &f/chatadmin notify <player> <category> <message>&7, &f/chatadmin broadcast <category> <message>");
+        message(sender, "&7Commands: &#2b98fd/chatadmin reload&7, &#2b98fd/chatadmin set <player> <mode>&7, &#2b98fd/chatadmin reset <player>");
+        message(sender, "&7Notify: &#2b98fd/chatadmin notify <player> <category> <message>&7, &#2b98fd/chatadmin broadcast <category> <message>");
     }
 
     private void message(CommandSender sender, String message) {

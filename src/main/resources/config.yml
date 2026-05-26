@@ -1,7 +1,7 @@
 # ChatPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 1
+config-version: 3
 
 defaults:
   # Initial mode for players without saved preferences.
@@ -64,17 +64,17 @@ modes:
 
 notifications:
   # Used by /chatadmin notify and ChatPlusApi.send.
-  format: "&8[&b{category_label}&8] &f{message}"
+  format: "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}"
 
   # Used by /chatadmin broadcast and ChatPlusApi.broadcast.
-  broadcast-format: "&8[&b{category_label}&8] &f{message}"
+  broadcast-format: "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}"
 
 messages:
-  prefix: "&bChat+ &8> &f"
-  mode-changed: "&7Chat mode set to &f{mode}&7."
+  prefix: "&#2b98fdChatPlus &8› &7"
+  mode-changed: "&7Chat mode set to &#2b98fd{mode}&7."
   category-allowed: "&7Allowed &f{category}&7."
   category-blocked: "&7Blocked &f{category}&7."
-  category-reset: "&7Reset &f{category}&7 to your mode default."
-  settings-reset: "&7Your ChatPlus preferences were reset."
-  mentions-on: "&7Mentions are now &fenabled&7."
-  mentions-off: "&7Mentions are now &fdisabled&7."
+  category-reset: "&7Reset &f{category}&7."
+  settings-reset: "&7Chat preferences reset."
+  mentions-on: "&7Mentions are &#57F287enabled&7."
+  mentions-off: "&7Mentions are &#ED4245disabled&7."

@@ -28,11 +28,11 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("chatplus.command")) {
-            message(sender, "&cNo permission.");
+            message(sender, "&#ED4245No permission.");
             return true;
         }
         if (!(sender instanceof Player player)) {
-            message(sender, "&cOnly players can manage chat preferences.");
+            message(sender, "&#ED4245Only players can manage chat preferences.");
             return true;
         }
         if (args.length == 0) {
@@ -49,7 +49,7 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
         switch (subCommand) {
             case "mode" -> {
                 if (args.length < 2 || !setMode(player, args[1])) {
-                    message(player, "&cUsage: /chat mode <normal|quiet|focus|off>");
+                    message(player, "&7Usage: &#2b98fd/chat mode <normal|quiet|focus|off>");
                 }
             }
             case "allow" -> category(player, args, true);
@@ -77,12 +77,12 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
 
     private void category(Player player, String[] args, boolean allow) {
         if (args.length < 2) {
-            message(player, allow ? "&cUsage: /chat allow <category>" : "&cUsage: /chat block <category>");
+            message(player, allow ? "&7Usage: &#2b98fd/chat allow <category>" : "&7Usage: &#2b98fd/chat block <category>");
             return;
         }
         ChatCategory category = ChatCategory.from(args[1]).orElse(null);
         if (category == null) {
-            message(player, "&cUnknown category. Use /chat categories.");
+            message(player, "&#ED4245Unknown category. &7Use &#2b98fd/chat categories&7.");
             return;
         }
         PlayerChatSettings settings = settingsStore.settings(player.getUniqueId());
@@ -101,7 +101,7 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
         if (args.length >= 2 && !"all".equalsIgnoreCase(args[1])) {
             ChatCategory category = ChatCategory.from(args[1]).orElse(null);
             if (category == null) {
-                message(player, "&cUnknown category. Use /chat categories.");
+                message(player, "&#ED4245Unknown category. &7Use &#2b98fd/chat categories&7.");
                 return;
             }
             settings.reset(category);
@@ -116,7 +116,7 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
 
     private void mentions(Player player, String[] args) {
         if (args.length < 2) {
-            message(player, "&cUsage: /chat mentions <on|off>");
+            message(player, "&7Usage: &#2b98fd/chat mentions <on|off>");
             return;
         }
         PlayerChatSettings settings = settingsStore.settings(player.getUniqueId());
@@ -128,7 +128,7 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
 
     private void status(CommandSender sender, Player target) {
         PlayerChatSettings settings = settingsStore.settings(target.getUniqueId());
-        message(sender, "&7Mode: &f" + settings.mode().label() + "&7. Mentions: &f"
+        message(sender, "&7Mode: &#2b98fd" + settings.mode().label() + "&7. Mentions: &f"
                 + (settings.mentionsEnabled() ? "on" : "off") + "&7.");
         List<String> allowed = Arrays.stream(ChatCategory.values())
                 .filter(category -> settings.allows(category, config.modeAllows(settings.mode(), category)))
@@ -143,8 +143,8 @@ public final class ChatCommand implements CommandExecutor, TabCompleter {
     }
 
     private void help(CommandSender sender) {
-        message(sender, "&7Commands: &f/chat normal&7, &f/chat quiet&7, &f/chat focus&7, &f/chat off");
-        message(sender, "&7Prefs: &f/chat allow <category>&7, &f/chat block <category>&7, &f/chat reset [category|all]&7, &f/chat mentions <on|off>");
+        message(sender, "&7Commands: &#2b98fd/chat normal&7, &#2b98fd/chat quiet&7, &#2b98fd/chat focus&7, &#2b98fd/chat off");
+        message(sender, "&7Prefs: &#2b98fd/chat allow <category>&7, &#2b98fd/chat block <category>&7, &#2b98fd/chat reset [category|all]&7, &#2b98fd/chat mentions <on|off>");
     }
 
     private String render(String template, String placeholder, String value) {
