@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/sqware-gg/ChatPlus/actions/workflows/build.yml/badge.svg)](https://github.com/sqware-gg/ChatPlus/actions/workflows/build.yml)
 
-**Get the plugin jar, setup help, and updates in the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
+**Join the SQWARE Discord: [discord.sqware.gg](https://discord.sqware.gg).**
 
 ChatPlus is a Paper chat control plugin for Minecraft servers. It lets players hide public chat while still receiving important messages such as mentions, teleport requests, warnings, private notices, purchase alerts, and server announcements.
 
