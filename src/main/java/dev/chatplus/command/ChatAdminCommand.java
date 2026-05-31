@@ -2,6 +2,7 @@ package dev.chatplus.command;
 
 import dev.chatplus.chat.ChatCategory;
 import dev.chatplus.chat.ChatMode;
+import dev.chatplus.chat.ItemShareService;
 import dev.chatplus.chat.NotificationService;
 import dev.chatplus.config.ChatPlusConfig;
 import dev.chatplus.settings.PlayerChatSettings;
@@ -22,11 +23,18 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
     private final ChatPlusConfig config;
     private final PlayerSettingsStore settingsStore;
     private final NotificationService notificationService;
+    private final ItemShareService itemShareService;
 
-    public ChatAdminCommand(ChatPlusConfig config, PlayerSettingsStore settingsStore, NotificationService notificationService) {
+    public ChatAdminCommand(
+            ChatPlusConfig config,
+            PlayerSettingsStore settingsStore,
+            NotificationService notificationService,
+            ItemShareService itemShareService
+    ) {
         this.config = config;
         this.settingsStore = settingsStore;
         this.notificationService = notificationService;
+        this.itemShareService = itemShareService;
     }
 
     @Override
@@ -103,6 +111,7 @@ public final class ChatAdminCommand implements CommandExecutor, TabCompleter {
     private void reload(CommandSender sender) {
         config.reload();
         settingsStore.reload();
+        itemShareService.clearCooldowns();
         message(sender, "&#57F287Chat reloaded.");
     }
 

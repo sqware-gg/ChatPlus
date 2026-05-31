@@ -1,11 +1,13 @@
 package dev.chatplus.api;
 
 import dev.chatplus.chat.ChatCategory;
+import dev.chatplus.chat.ItemShareService;
 import dev.chatplus.chat.NotificationService;
 import org.bukkit.entity.Player;
 
 public final class ChatPlusApi {
     private static NotificationService notificationService;
+    private static ItemShareService itemShareService;
 
     private ChatPlusApi() {
     }
@@ -30,11 +32,25 @@ public final class ChatPlusApi {
                 .orElse(0);
     }
 
-    public static void register(NotificationService service) {
+    public static String renderDiscordChat(Player player, String message) {
+        return itemShareService == null ? message : itemShareService.renderDiscord(player, message);
+    }
+
+    public static boolean hasInteractivePlaceholders(String message) {
+        return itemShareService != null && itemShareService.hasPlaceholders(message);
+    }
+
+    public static void register(NotificationService service, ItemShareService shareService) {
         notificationService = service;
+        itemShareService = shareService;
+    }
+
+    public static void register(NotificationService service) {
+        register(service, null);
     }
 
     public static void unregister() {
         notificationService = null;
+        itemShareService = null;
     }
 }

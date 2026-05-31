@@ -18,6 +18,7 @@ Use it when you want chat toggle, quiet mode, focus mode, mention passthrough, a
 - Admin notifications and broadcasts.
 - Public `ChatPlusApi` for teleport, store, moderation, and utility plugins.
 - Config-safe updates through `config-new.yml`.
+- Interactive item and inventory sharing in chat with `[item]`, `[inv]`, and `[ender]` style placeholders.
 
 ## Requirements
 
@@ -77,7 +78,22 @@ chatplus.command  - use /chat, default true
 chatplus.admin    - admin commands, default op
 chatplus.notify   - notify and broadcast commands, default op
 chatplus.bypass   - sender bypasses recipient regular-chat filters, default op
+chatplus.item     - use [item], [i], and [hand], default true
+chatplus.item.offhand - use [offhand] and [off], default true
+chatplus.item.bypass-cooldown - bypass item share cooldowns, default op
+chatplus.inventory - use [inventory] and [inv], default true
+chatplus.enderchest - use [enderchest], [ender], and [ec], default true
 ```
+
+## Interactive Sharing
+
+Players can type `[item]`, `[i]`, or `[hand]` in public chat to show the item in their main hand. `[offhand]` and `[off]` show the off hand item. On Paper modern chat, the replacement is an interactive component with the real Minecraft item hover tooltip, including custom names, lore, enchantments, and NBT supplied by Paper. Legacy chat falls back to a plain item name.
+
+Item display formats support `{name}` and `{plain_item}` for a clean text name such as `Emerald Block`, while keeping the real item hover tooltip attached to the rendered replacement. `{item}` remains available for the raw Paper item display component.
+
+Players can also type `[inventory]` or `[inv]` to share a clickable, read-only inventory snapshot, and `[enderchest]`, `[ender]`, or `[ec]` to share a clickable ender chest snapshot. Snapshots expire automatically and cannot be edited by viewers.
+
+The feature is controlled by `item-share`, `inventory-share`, and `ender-chest-share` in `config.yml`: placeholders, cooldowns, max replacements per message, permissions, display format, Discord fallback text, click behavior, snapshot expiry, and failure messages are configurable.
 
 ## Java API
 
@@ -85,6 +101,7 @@ chatplus.bypass   - sender bypasses recipient regular-chat filters, default op
 ChatPlusApi.send(player, ChatCategory.TELEPORT_REQUEST, "0xConflict wants to teleport to you.");
 ChatPlusApi.broadcast(ChatCategory.PURCHASE, "Hilal_h18 bought Premium.");
 ChatPlusApi.send(player, "server-notice", "Restart in 5 minutes.");
+String discordText = ChatPlusApi.renderDiscordChat(player, "Selling [item], see [inv].");
 ```
 
 ## Build

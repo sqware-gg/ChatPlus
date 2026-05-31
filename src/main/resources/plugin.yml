@@ -18,6 +18,9 @@ commands:
     aliases:
       - cpa
       - chatplusadmin
+  chatplusview:
+    description: Opens a shared ChatPlus inventory snapshot.
+    usage: /chatplusview <id>
 permissions:
   chatplus.command:
     description: Allows players to manage their chat preferences.
@@ -33,3 +36,18 @@ permissions:
   chatplus.notify:
     description: Allows sending categorized ChatPlus notifications.
     default: op
+  chatplus.item:
+    description: Allows sharing the main hand item in chat with [item].
+    default: true
+  chatplus.item.offhand:
+    description: Allows sharing the off hand item in chat with [offhand].
+    default: true
+  chatplus.item.bypass-cooldown:
+    description: Bypasses ChatPlus item share cooldowns.
+    default: op
+  chatplus.inventory:
+    description: Allows sharing inventory snapshots in chat with [inventory].
+    default: true
+  chatplus.enderchest:
+    description: Allows sharing ender chest snapshots in chat with [enderchest].
+    default: true

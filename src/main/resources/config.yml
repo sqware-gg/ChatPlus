@@ -1,7 +1,7 @@
 # ChatPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 3
+config-version: 6
 
 defaults:
   # Initial mode for players without saved preferences.
@@ -20,6 +20,102 @@ mentions:
   case-sensitive: false
   # Also treat the bare player name as a mention.
   match-without-prefix: false
+
+item-share:
+  # Allows players to type item placeholders such as [item] in public chat.
+  # Paper modern chat displays the real item hover tooltip.
+  enabled: true
+
+  # Placeholder matching is case-insensitive by default, so [ITEM] also works.
+  case-sensitive-placeholders: false
+
+  # Main hand placeholders. The first matching token is replaced by the held item.
+  main-hand-placeholders:
+    - "[item]"
+    - "[i]"
+    - "[hand]"
+
+  # Off hand placeholders.
+  off-hand-placeholders:
+    - "[offhand]"
+    - "[off]"
+
+  # Shared safety limits for item, inventory, and ender chest placeholders.
+  # Set max-per-message to 0 for no replacement limit.
+  max-per-message: 2
+  cooldown-seconds: 5
+
+  # Permission gates.
+  permission: "chatplus.item"
+  off-hand-permission: "chatplus.item.offhand"
+  bypass-cooldown-permission: "chatplus.item.bypass-cooldown"
+
+  display:
+    # {name} and {plain_item} are clean text names, e.g. "Emerald Block".
+    # {item} is the real item display component from Paper, but some clients or
+    # chat-format plugins may render it less cleanly than {name}.
+    # The real item hover tooltip is attached to the whole rendered replacement
+    # on Paper modern chat, including text rendered from {name}.
+    # Also available: {material}, {type}, {placeholder}, {amount}.
+    format: "&8[&f{name}{amount}&8]"
+    # Used by the legacy chat fallback where hover events are unavailable.
+    plain-format: "[{name}{amount}]"
+    # Used by DiscordPlus when it relays this ChatPlus message to Discord.
+    discord-format: "**{name}{amount}**"
+    amount-format: " &7x{amount}"
+    show-amount: true
+
+  click:
+    # none, suggest, or copy.
+    # suggest puts the item name in the player's chat box when clicked.
+    action: "suggest"
+    # Shift-click insertion text for supported clients.
+    shift-click-insertion: true
+
+  messages:
+    no-permission: "&#ED4245You cannot share items in chat."
+    cooldown: "&7Wait &#2b98fd{seconds}s &7before sharing another item."
+    empty-hand: "&#ED4245Hold an item before using &f[item]&#ED4245."
+    too-many-items: "&7You can share up to &#2b98fd{max} &7interactive placeholders per message."
+    unavailable: "&#ED4245Could not read your held item. Try again."
+
+inventory-share:
+  # Allows players to share a clickable snapshot of their inventory.
+  enabled: true
+  placeholders:
+    - "[inventory]"
+    - "[inv]"
+  permission: "chatplus.inventory"
+  # How long click-to-view snapshots stay available.
+  expires-seconds: 120
+  display:
+    format: "&8[&#2b98fd{player}'s Inventory&8]"
+    plain-format: "[{player}'s Inventory]"
+    discord-format: "**{player}'s inventory** - {summary}"
+    hover-text: "&7Click to view &#2b98fd{player}'s inventory&7."
+    title: "&#2b98fd{player}'s Inventory"
+  messages:
+    empty: "&7That inventory is empty."
+    expired: "&#ED4245That shared inventory expired."
+
+ender-chest-share:
+  # Allows players to share a clickable snapshot of their ender chest.
+  enabled: true
+  placeholders:
+    - "[enderchest]"
+    - "[ender]"
+    - "[ec]"
+  permission: "chatplus.enderchest"
+  expires-seconds: 120
+  display:
+    format: "&8[&#b642ff{player}'s Ender Chest&8]"
+    plain-format: "[{player}'s Ender Chest]"
+    discord-format: "**{player}'s ender chest** - {summary}"
+    hover-text: "&7Click to view &#b642ff{player}'s ender chest&7."
+    title: "&#b642ff{player}'s Ender Chest"
+  messages:
+    empty: "&7That ender chest is empty."
+    expired: "&#ED4245That shared ender chest expired."
 
 modes:
   normal:

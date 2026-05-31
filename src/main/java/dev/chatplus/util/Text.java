@@ -2,10 +2,13 @@ package dev.chatplus.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 
 public final class Text {
     private static final Pattern HEX_COLOR = Pattern.compile("&#([A-Fa-f0-9]{6})");
+    private static final LegacyComponentSerializer LEGACY_COMPONENTS = LegacyComponentSerializer.legacySection();
 
     private Text() {
     }
@@ -21,6 +24,10 @@ public final class Text {
 
     public static String oneLine(String text) {
         return strip(text).replace('\r', ' ').replace('\n', ' ').trim();
+    }
+
+    public static Component component(String text) {
+        return LEGACY_COMPONENTS.deserialize(color(text));
     }
 
     private static String replaceHex(String text) {

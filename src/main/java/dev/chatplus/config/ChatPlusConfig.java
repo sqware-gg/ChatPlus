@@ -4,6 +4,8 @@ import dev.chatplus.chat.ChatCategory;
 import dev.chatplus.chat.ChatMode;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -29,6 +31,9 @@ public final class ChatPlusConfig {
     private String settingsResetMessage;
     private String mentionsOnMessage;
     private String mentionsOffMessage;
+    private ItemShareSettings itemShare;
+    private ViewShareSettings inventoryShare;
+    private ViewShareSettings enderChestShare;
 
     public ChatPlusConfig(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -59,6 +64,78 @@ public final class ChatPlusConfig {
         settingsResetMessage = string(config.getString("messages.settings-reset"), "&7Chat preferences reset.");
         mentionsOnMessage = string(config.getString("messages.mentions-on"), "&7Mentions are &#57F287enabled&7.");
         mentionsOffMessage = string(config.getString("messages.mentions-off"), "&7Mentions are &#ED4245disabled&7.");
+        itemShare = readItemShare(config);
+        inventoryShare = readViewShare(config, "inventory-share", "Inventory", List.of("[inventory]", "[inv]"),
+                "chatplus.inventory", "&8[&#2b98fd{player}'s Inventory&8]",
+                "[{player}'s Inventory]", "**{player}'s inventory** - {summary}",
+                "&7Click to view &#2b98fd{player}'s inventory&7.", "&#2b98fd{player}'s Inventory");
+        enderChestShare = readViewShare(config, "ender-chest-share", "Ender Chest", List.of("[enderchest]", "[ender]", "[ec]"),
+                "chatplus.enderchest", "&8[&#b642ff{player}'s Ender Chest&8]",
+                "[{player}'s Ender Chest]", "**{player}'s ender chest** - {summary}",
+                "&7Click to view &#b642ff{player}'s ender chest&7.", "&#b642ff{player}'s Ender Chest");
+    }
+
+    private ItemShareSettings readItemShare(FileConfiguration config) {
+        String base = "item-share.";
+        return new ItemShareSettings(
+                config.getBoolean(base + "enabled", true),
+                config.getBoolean(base + "case-sensitive-placeholders", false),
+                stringList(config, base + "main-hand-placeholders", List.of("[item]", "[i]", "[hand]")),
+                stringList(config, base + "off-hand-placeholders", List.of("[offhand]", "[off]")),
+                Math.max(0, config.getInt(base + "max-per-message", 1)),
+                Math.max(0L, Math.round(config.getDouble(base + "cooldown-seconds", 5.0D) * 1000.0D)),
+                string(config.getString(base + "permission"), "chatplus.item"),
+                string(config.getString(base + "off-hand-permission"), "chatplus.item.offhand"),
+                string(config.getString(base + "bypass-cooldown-permission"), "chatplus.item.bypass-cooldown"),
+                string(config.getString(base + "display.format"), "&8[&f{name}{amount}&8]"),
+                string(config.getString(base + "display.plain-format"), "[{name}{amount}]"),
+                string(config.getString(base + "display.discord-format"), "**{name}{amount}**"),
+                string(config.getString(base + "display.amount-format"), " &7x{amount}"),
+                config.getBoolean(base + "display.show-amount", true),
+                ItemClickAction.from(config.getString(base + "click.action", "suggest")),
+                config.getBoolean(base + "click.shift-click-insertion", true),
+                string(config.getString(base + "messages.no-permission"), "&#ED4245You cannot share items in chat."),
+                string(config.getString(base + "messages.cooldown"), "&7Wait &#2b98fd{seconds}s &7before sharing another item."),
+                string(config.getString(base + "messages.empty-hand"), "&#ED4245Hold an item before using &f[item]&#ED4245."),
+                string(config.getString(base + "messages.too-many-items"), "&7You can share up to &#2b98fd{max} &7item per message."),
+                string(config.getString(base + "messages.unavailable"), "&#ED4245Could not read your held item. Try again.")
+        );
+    }
+
+    private ViewShareSettings readViewShare(
+            FileConfiguration config,
+            String section,
+            String label,
+            List<String> fallbackPlaceholders,
+            String fallbackPermission,
+            String fallbackDisplayFormat,
+            String fallbackPlainFormat,
+            String fallbackDiscordFormat,
+            String fallbackHoverText,
+            String fallbackTitle
+    ) {
+        String base = section + ".";
+        return new ViewShareSettings(
+                label,
+                config.getBoolean(base + "enabled", true),
+                stringList(config, base + "placeholders", fallbackPlaceholders),
+                string(config.getString(base + "permission"), fallbackPermission),
+                Math.max(15_000L, Math.round(config.getDouble(base + "expires-seconds", 120.0D) * 1000.0D)),
+                string(config.getString(base + "display.format"), fallbackDisplayFormat),
+                string(config.getString(base + "display.plain-format"), fallbackPlainFormat),
+                string(config.getString(base + "display.discord-format"), fallbackDiscordFormat),
+                string(config.getString(base + "display.hover-text"), fallbackHoverText),
+                string(config.getString(base + "display.title"), fallbackTitle),
+                string(config.getString(base + "messages.empty"), "&7That " + label.toLowerCase(Locale.ROOT) + " is empty."),
+                string(config.getString(base + "messages.expired"), "&#ED4245That shared " + label.toLowerCase(Locale.ROOT) + " expired.")
+        );
+    }
+
+    private List<String> stringList(FileConfiguration config, String path, List<String> fallback) {
+        List<String> values = config.getStringList(path).stream()
+                .filter(value -> value != null && !value.isBlank())
+                .toList();
+        return values.isEmpty() ? fallback : List.copyOf(values);
     }
 
     private EnumMap<ChatMode, EnumSet<ChatCategory>> readModeDefaults(FileConfiguration config) {
@@ -169,5 +246,75 @@ public final class ChatPlusConfig {
 
     public Map<ChatMode, EnumSet<ChatCategory>> modeDefaults() {
         return new EnumMap<>(modeDefaults);
+    }
+
+    public ItemShareSettings itemShare() {
+        return itemShare;
+    }
+
+    public ViewShareSettings inventoryShare() {
+        return inventoryShare;
+    }
+
+    public ViewShareSettings enderChestShare() {
+        return enderChestShare;
+    }
+
+    public enum ItemClickAction {
+        NONE,
+        SUGGEST,
+        COPY;
+
+        public static ItemClickAction from(String value) {
+            if (value == null || value.isBlank()) {
+                return SUGGEST;
+            }
+            try {
+                return ItemClickAction.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+            } catch (IllegalArgumentException ignored) {
+                return SUGGEST;
+            }
+        }
+    }
+
+    public record ItemShareSettings(
+            boolean enabled,
+            boolean caseSensitive,
+            List<String> mainHandPlaceholders,
+            List<String> offHandPlaceholders,
+            int maxPerMessage,
+            long cooldownMillis,
+            String permission,
+            String offHandPermission,
+            String bypassCooldownPermission,
+            String displayFormat,
+            String plainFormat,
+            String discordFormat,
+            String amountFormat,
+            boolean showAmount,
+            ItemClickAction clickAction,
+            boolean shiftClickInsertion,
+            String noPermissionMessage,
+            String cooldownMessage,
+            String emptyHandMessage,
+            String tooManyItemsMessage,
+            String unavailableMessage
+    ) {
+    }
+
+    public record ViewShareSettings(
+            String label,
+            boolean enabled,
+            List<String> placeholders,
+            String permission,
+            long expiresMillis,
+            String displayFormat,
+            String plainFormat,
+            String discordFormat,
+            String hoverText,
+            String title,
+            String emptyMessage,
+            String expiredMessage
+    ) {
     }
 }
