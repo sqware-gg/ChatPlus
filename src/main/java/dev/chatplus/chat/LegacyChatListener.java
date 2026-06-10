@@ -11,21 +11,20 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 public final class LegacyChatListener implements Listener {
     private final ChatFilterService filterService;
     private final ItemShareService itemShareService;
-    private final boolean enabled;
+    private final boolean compatibilityFallback;
 
-    public LegacyChatListener(ChatFilterService filterService, ItemShareService itemShareService, boolean enabled) {
+    public LegacyChatListener(ChatFilterService filterService, ItemShareService itemShareService, boolean compatibilityFallback) {
         this.filterService = filterService;
         this.itemShareService = itemShareService;
-        this.enabled = enabled;
+        this.compatibilityFallback = compatibilityFallback;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onChat(AsyncPlayerChatEvent event) {
-        if (!enabled) {
-            return;
-        }
         String plainMessage = Text.oneLine(event.getMessage());
-        ItemShareService.ItemShareResult itemShare = itemShareService.render(event.getPlayer(), plainMessage);
+        ItemShareService.ItemShareResult itemShare = compatibilityFallback
+                ? itemShareService.renderLegacyFallback(event.getPlayer(), plainMessage)
+                : itemShareService.render(event.getPlayer(), plainMessage);
         if (itemShare.cancelled()) {
             event.setCancelled(true);
             itemShareService.sendFailure(event.getPlayer(), itemShare.failureMessage());

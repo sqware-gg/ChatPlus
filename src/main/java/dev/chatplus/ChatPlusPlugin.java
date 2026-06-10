@@ -2,6 +2,7 @@ package dev.chatplus;
 
 import dev.chatplus.api.ChatPlusApi;
 import dev.chatplus.chat.ChatFilterService;
+import dev.chatplus.chat.ChatRenderService;
 import dev.chatplus.chat.ItemShareService;
 import dev.chatplus.chat.LegacyChatListener;
 import dev.chatplus.chat.NotificationService;
@@ -27,11 +28,12 @@ public final class ChatPlusPlugin extends JavaPlugin {
         settingsStore = new PlayerSettingsStore(this, chatConfig);
         ChatFilterService filterService = new ChatFilterService(chatConfig, settingsStore);
         ItemShareService itemShareService = new ItemShareService(this, chatConfig);
+        ChatRenderService renderService = new ChatRenderService(this, chatConfig);
         notificationService = new NotificationService(chatConfig, filterService);
         ChatPlusApi.register(notificationService, itemShareService);
 
-        boolean modernChat = registerPaperChatListener(filterService, itemShareService);
-        getServer().getPluginManager().registerEvents(new LegacyChatListener(filterService, itemShareService, !modernChat), this);
+        boolean modernChat = registerPaperChatListener(filterService, itemShareService, renderService);
+        getServer().getPluginManager().registerEvents(new LegacyChatListener(filterService, itemShareService, modernChat), this);
         getServer().getPluginManager().registerEvents(itemShareService, this);
         PluginCommand viewCommand = getCommand("chatplusview");
         if (viewCommand != null) {
@@ -53,13 +55,14 @@ public final class ChatPlusPlugin extends JavaPlugin {
         }
     }
 
-    private boolean registerPaperChatListener(ChatFilterService filterService, ItemShareService itemShareService) {
+    private boolean registerPaperChatListener(ChatFilterService filterService, ItemShareService itemShareService,
+                                             ChatRenderService renderService) {
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
             Class<?> listenerClass = Class.forName("dev.chatplus.chat.PaperChatListener");
             Listener listener = (Listener) listenerClass
-                    .getConstructor(ChatFilterService.class, ItemShareService.class)
-                    .newInstance(filterService, itemShareService);
+                    .getConstructor(ChatFilterService.class, ItemShareService.class, ChatRenderService.class)
+                    .newInstance(filterService, itemShareService, renderService);
             getServer().getPluginManager().registerEvents(listener, this);
             getLogger().info("Using Paper modern chat event.");
             return true;

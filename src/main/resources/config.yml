@@ -1,7 +1,7 @@
 # ChatPlus
 # Used for update checks.
 # Do not change unless you know what you are doing.
-config-version: 6
+config-version: 9
 
 defaults:
   # Initial mode for players without saved preferences.
@@ -20,6 +20,57 @@ mentions:
   case-sensitive: false
   # Also treat the bare player name as a mention.
   match-without-prefix: false
+
+chat:
+  # Let ChatPlus own final public chat rendering. Disable EssentialsXChat or any other
+  # legacy/string chat formatter for reliable hover/click components.
+  enabled: true
+
+  # {message} is inserted as the rich chat component, preserving [item], inventory,
+  # ender chest, hover, click, and insertion metadata.
+  format: "{prefix}{display_name}{suffix} &8> &f{message}"
+
+  # First matching permission format wins. Useful for staff or donor formats.
+  permission-formats:
+    chatplus.format.staff: "&#FEE75C[Staff] &f{display_name} &8> &f{message}"
+
+  # Group formats use LuckPerms primary group names, lower-case.
+  group-formats:
+    owner: "&#ED4245[Owner] &f{display_name} &8> &f{message}"
+    admin: "&#FEE75C[Admin] &f{display_name} &8> &f{message}"
+    mod: "&#57F287[Mod] &f{display_name} &8> &f{message}"
+
+  luckperms:
+    enabled: true
+    fallback-prefix: ""
+    fallback-suffix: ""
+    fallback-primary-group: "default"
+
+  placeholderapi:
+    # Allows %placeholderapi_placeholders% in chat formats, group formats, and hover/click text.
+    enabled: true
+
+  names:
+    use-paper-display-name: true
+    fallback-color: "&f"
+
+  message-colors:
+    # Allows & color codes in player chat. Item hover metadata remains component-native.
+    enabled: false
+    legacy-permission: "chatplus.color"
+    hex-permission: "chatplus.hex"
+
+  player-hover:
+    enabled: true
+    lines:
+      - "&7Player: &f{username}"
+      - "&7Group: &f{primary_group}"
+      - "&7World: &f{world}"
+
+  player-click:
+    # none, suggest, run, or copy.
+    action: "suggest"
+    value: "/msg {username} "
 
 item-share:
   # Allows players to type item placeholders such as [item] in public chat.
@@ -52,18 +103,30 @@ item-share:
 
   display:
     # {name} and {plain_item} are clean text names, e.g. "Emerald Block".
-    # {item} is the real item display component from Paper, but some clients or
-    # chat-format plugins may render it less cleanly than {name}.
-    # The real item hover tooltip is attached to the whole rendered replacement
-    # on Paper modern chat, including text rendered from {name}.
+    # {item} is the real item display component from Paper.
+    # The item hover tooltip is attached to the whole rendered replacement.
     # Also available: {material}, {type}, {placeholder}, {amount}.
-    format: "&8[&f{name}{amount}&8]"
+    format: "&8[&f{item}{amount}&8]"
     # Used by the legacy chat fallback where hover events are unavailable.
     plain-format: "[{name}{amount}]"
     # Used by DiscordPlus when it relays this ChatPlus message to Discord.
-    discord-format: "**{name}{amount}**"
+    discord-format: "{name}{amount}"
     amount-format: " &7x{amount}"
     show-amount: true
+
+  hover:
+    # item uses the vanilla Minecraft item tooltip. Use text only if another chat
+    # plugin strips show_item hover events.
+    # Options: text, item
+    mode: "item"
+    # Lines used when mode is text. Special full-line tokens expand into multiple lines:
+    # {durability}, {enchants}, {enchantments}, {lore}
+    text:
+      - "&#57F287{name}{amount}"
+      - "&7Type: &f{material}"
+      - "{durability}"
+      - "{enchants}"
+      - "{lore}"
 
   click:
     # none, suggest, or copy.

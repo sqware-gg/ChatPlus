@@ -1,10 +1,19 @@
 name: ChatPlus
 version: 0.1.0
 main: dev.chatplus.ChatPlusPlugin
-api-version: '1.18'
+api-version: '26.1.2'
 author: SQWARE / Conflict
 website: https://sqware.gg
 description: Player chat focus modes and categorized notifications for Paper servers.
+softdepend:
+  - Essentials
+  - EssentialsChat
+  - LuckPerms
+  - PlaceholderAPI
+  - LPC
+  - VentureChat
+  - DeluxeChat
+  - HuskChat
 commands:
   chat:
     description: Manage your ChatPlus focus mode and category preferences.
@@ -44,6 +53,15 @@ permissions:
     default: true
   chatplus.item.bypass-cooldown:
     description: Bypasses ChatPlus item share cooldowns.
+    default: op
+  chatplus.color:
+    description: Allows legacy color codes in public chat when enabled.
+    default: op
+  chatplus.hex:
+    description: Allows hex color codes in public chat when enabled.
+    default: op
+  chatplus.format.staff:
+    description: Uses the default staff chat format when configured.
     default: op
   chatplus.inventory:
     description: Allows sharing inventory snapshots in chat with [inventory].

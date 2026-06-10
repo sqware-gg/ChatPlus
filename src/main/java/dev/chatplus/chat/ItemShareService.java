@@ -2,6 +2,7 @@ package dev.chatplus.chat;
 
 import dev.chatplus.config.ChatPlusConfig;
 import dev.chatplus.config.ChatPlusConfig.ItemClickAction;
+import dev.chatplus.config.ChatPlusConfig.ItemHoverMode;
 import dev.chatplus.config.ChatPlusConfig.ItemShareSettings;
 import dev.chatplus.config.ChatPlusConfig.ViewShareSettings;
 import dev.chatplus.util.Text;
@@ -29,6 +30,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,6 +39,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -57,6 +60,14 @@ public final class ItemShareService implements CommandExecutor, Listener {
     }
 
     public ItemShareResult render(Player sender, String message) {
+        return render(sender, message, true);
+    }
+
+    public ItemShareResult renderLegacyFallback(Player sender, String message) {
+        return render(sender, message, false);
+    }
+
+    private ItemShareResult render(Player sender, String message, boolean applyCooldown) {
         if (!sharesEnabled() || message == null || message.isBlank()) {
             return ItemShareResult.unchanged();
         }
@@ -66,7 +77,7 @@ public final class ItemShareService implements CommandExecutor, Listener {
             return ItemShareResult.unchanged();
         }
 
-        String validationMessage = validate(sender, occurrences);
+        String validationMessage = validate(sender, occurrences, applyCooldown);
         if (validationMessage != null) {
             return ItemShareResult.cancelled(validationMessage);
         }
@@ -82,25 +93,34 @@ public final class ItemShareService implements CommandExecutor, Listener {
         }
 
         storeSnapshots(snapshotData);
-        applyCooldown(sender);
+        if (applyCooldown) {
+            applyCooldown(sender);
+        }
 
         RenderedMessage rendered = renderMessage(message, occurrences, snapshotData);
         return ItemShareResult.changed(rendered.component(), rendered.plainMessage());
     }
 
     public String renderDiscord(Player sender, String message) {
+        return renderDiscordRich(sender, message).content();
+    }
+
+    public DiscordRenderResult renderDiscordRich(Player sender, String message) {
         if (!sharesEnabled() || message == null || message.isBlank()) {
-            return Text.oneLine(message);
+            return DiscordRenderResult.plain(Text.oneLine(message));
         }
         List<Occurrence> occurrences = findOccurrences(message);
         if (occurrences.isEmpty()) {
-            return Text.oneLine(message);
+            return DiscordRenderResult.plain(Text.oneLine(message));
         }
         SnapshotData snapshotData = snapshot(sender, occurrences, false);
         if (snapshotData == null || firstEmptyMessage(occurrences, snapshotData) != null) {
-            return Text.oneLine(message);
+            return DiscordRenderResult.plain(Text.oneLine(message));
         }
-        return renderDiscordMessage(message, occurrences, snapshotData);
+        return new DiscordRenderResult(
+                renderDiscordMessage(message, occurrences, snapshotData),
+                renderDiscordItemPreviews(sender, occurrences, snapshotData)
+        );
     }
 
     public boolean hasPlaceholders(String message) {
@@ -185,7 +205,7 @@ public final class ItemShareService implements CommandExecutor, Listener {
                 || config.enderChestShare().enabled();
     }
 
-    private String validate(Player sender, List<Occurrence> occurrences) {
+    private String validate(Player sender, List<Occurrence> occurrences, boolean checkCooldown) {
         ItemShareSettings settings = config.itemShare();
         if (settings.maxPerMessage() > 0 && occurrences.size() > settings.maxPerMessage()) {
             return settings.tooManyItemsMessage()
@@ -198,7 +218,7 @@ public final class ItemShareService implements CommandExecutor, Listener {
                 return permissionMessage;
             }
         }
-        if (settings.cooldownMillis() <= 0L || sender.hasPermission(settings.bypassCooldownPermission())) {
+        if (!checkCooldown || settings.cooldownMillis() <= 0L || sender.hasPermission(settings.bypassCooldownPermission())) {
             return null;
         }
         long remainingMillis = cooldowns.getOrDefault(sender.getUniqueId(), 0L) - System.currentTimeMillis();
@@ -382,13 +402,51 @@ public final class ItemShareService implements CommandExecutor, Listener {
         return Text.oneLine(builder.toString());
     }
 
+    private List<DiscordItemPreview> renderDiscordItemPreviews(
+            Player sender,
+            List<Occurrence> occurrences,
+            SnapshotData snapshotData
+    ) {
+        List<DiscordItemPreview> previews = new ArrayList<>();
+        for (Occurrence occurrence : occurrences) {
+            if (occurrence.kind() != ShareKind.ITEM) {
+                continue;
+            }
+            ItemStack item = snapshotData.items().get(occurrence.hand());
+            if (isEmpty(item)) {
+                continue;
+            }
+            previews.add(discordItemPreview(sender, item, occurrence));
+        }
+        return List.copyOf(previews);
+    }
+
+    private DiscordItemPreview discordItemPreview(Player sender, ItemStack item, Occurrence occurrence) {
+        ItemMeta meta = item.hasItemMeta() ? item.getItemMeta() : null;
+        return new DiscordItemPreview(
+                occurrence.placeholder(),
+                occurrence.hand() == SharedHand.OFF ? "offhand" : "mainhand",
+                sender == null ? "" : sender.getName(),
+                sender == null ? null : sender.getUniqueId(),
+                itemNamePlain(item),
+                item.getType().getKey().toString(),
+                item.getType().name(),
+                item.getType().getKey().getKey(),
+                item.getAmount(),
+                durabilityText(item),
+                meta != null && meta.hasCustomModelData() ? meta.getCustomModelData() : 0,
+                enchantmentLines(item),
+                loreLines(item)
+        );
+    }
+
     private Component renderItemComponent(ItemStack item, String placeholder) {
         ItemShareSettings settings = config.itemShare();
         Component displayName = itemNameComponent(item);
         String plainName = itemName(item);
         String amount = amountText(item, settings);
         String template = itemTextPlaceholders(settings.displayFormat(), item, plainName, amount, placeholder);
-        HoverEvent<?> hover = item.asHoverEvent(UnaryOperator.identity());
+        HoverEvent<?> hover = itemHover(item, plainName, amount, settings);
 
         return renderTemplateWithItem(template, displayName, plainName, hover, settings);
     }
@@ -433,7 +491,54 @@ public final class ItemShareService implements CommandExecutor, Listener {
         } else if (settings.clickAction() == ItemClickAction.COPY) {
             interactive = interactive.clickEvent(ClickEvent.copyToClipboard(plainName));
         }
-        return interactive;
+        if (interactive.children().isEmpty()) {
+            return interactive;
+        }
+        List<Component> children = new ArrayList<>();
+        for (Component child : interactive.children()) {
+            children.add(itemInteractive(child, hover, plainName, settings));
+        }
+        return interactive.children(children);
+    }
+
+    private HoverEvent<?> itemHover(ItemStack item, String plainName, String amount, ItemShareSettings settings) {
+        if (settings.hoverMode() == ItemHoverMode.ITEM) {
+            return item.asHoverEvent(UnaryOperator.identity());
+        }
+        return HoverEvent.showText(itemHoverText(item, plainName, amount, settings));
+    }
+
+    private Component itemHoverText(ItemStack item, String plainName, String amount, ItemShareSettings settings) {
+        List<String> lines = new ArrayList<>();
+        for (String template : settings.hoverText()) {
+            if ("{lore}".equals(template)) {
+                lines.addAll(loreLines(item));
+                continue;
+            }
+            if ("{enchants}".equals(template) || "{enchantments}".equals(template)) {
+                lines.addAll(enchantmentLines(item));
+                continue;
+            }
+            if ("{durability}".equals(template)) {
+                String durability = durabilityText(item);
+                if (!durability.isBlank()) {
+                    lines.add(durability);
+                }
+                continue;
+            }
+            String rendered = itemTextPlaceholders(template, item, plainName, amount, "")
+                    .replace("{durability}", durabilityText(item))
+                    .replace("{enchants}", String.join(", ", enchantmentLines(item)))
+                    .replace("{enchantments}", String.join(", ", enchantmentLines(item)))
+                    .replace("{lore}", String.join(" ", loreLines(item)));
+            if (!Text.strip(rendered).isBlank()) {
+                lines.add(rendered);
+            }
+        }
+        if (lines.isEmpty()) {
+            lines.add("&#57F287" + plainName);
+        }
+        return Text.component(String.join("\n", lines));
     }
 
     private String renderPlainItem(ItemStack item, String placeholder) {
@@ -463,6 +568,70 @@ public final class ItemShareService implements CommandExecutor, Listener {
                 .replace("{material}", item.getType().getKey().toString())
                 .replace("{type}", item.getType().name())
                 .replace("{placeholder}", placeholder);
+    }
+
+    private String durabilityText(ItemStack item) {
+        int maxDurability = item.getType().getMaxDurability();
+        if (maxDurability <= 0 || !(item.getItemMeta() instanceof Damageable damageable)) {
+            return "";
+        }
+        int remaining = Math.max(0, maxDurability - damageable.getDamage());
+        return "&7Durability: &f" + remaining + "&8/&f" + maxDurability;
+    }
+
+    private List<String> enchantmentLines(ItemStack item) {
+        if (item.getEnchantments().isEmpty()) {
+            return List.of();
+        }
+        List<String> lines = new ArrayList<>();
+        for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
+            lines.add("&7" + title(entry.getKey().getKey().getKey()) + " &f" + roman(entry.getValue()));
+        }
+        return lines;
+    }
+
+    private List<String> loreLines(ItemStack item) {
+        ItemMeta meta = item.hasItemMeta() ? item.getItemMeta() : null;
+        if (meta == null || !meta.hasLore() || meta.lore() == null) {
+            return List.of();
+        }
+        List<String> lines = new ArrayList<>();
+        for (Component component : meta.lore()) {
+            String line = Text.oneLine(PlainTextComponentSerializer.plainText().serialize(component));
+            if (!line.isBlank()) {
+                lines.add("&8- &7" + line);
+            }
+        }
+        return lines;
+    }
+
+    private String title(String key) {
+        String normalized = key == null ? "" : key.replace('_', ' ').replace('-', ' ').trim();
+        if (normalized.isBlank()) {
+            return "";
+        }
+        StringBuilder title = new StringBuilder();
+        for (String part : normalized.split("\\s+")) {
+            if (!title.isEmpty()) {
+                title.append(' ');
+            }
+            title.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) {
+                title.append(part.substring(1).toLowerCase(Locale.ROOT));
+            }
+        }
+        return title.toString();
+    }
+
+    private String roman(int value) {
+        return switch (value) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            default -> Integer.toString(value);
+        };
     }
 
     private String renderPlainView(ViewSnapshot snapshot) {
@@ -741,5 +910,28 @@ public final class ItemShareService implements CommandExecutor, Listener {
         public String failureMessage() {
             return failureMessage;
         }
+    }
+
+    public record DiscordRenderResult(String content, List<DiscordItemPreview> itemPreviews) {
+        public static DiscordRenderResult plain(String content) {
+            return new DiscordRenderResult(content, List.of());
+        }
+    }
+
+    public record DiscordItemPreview(
+            String placeholder,
+            String hand,
+            String ownerName,
+            UUID ownerUuid,
+            String name,
+            String materialKey,
+            String materialName,
+            String imageKey,
+            int amount,
+            String durability,
+            int customModelData,
+            List<String> enchantments,
+            List<String> lore
+    ) {
     }
 }

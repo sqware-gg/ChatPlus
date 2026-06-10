@@ -36,6 +36,12 @@ public final class ChatPlusApi {
         return itemShareService == null ? message : itemShareService.renderDiscord(player, message);
     }
 
+    public static ItemShareService.DiscordRenderResult renderDiscordChatRich(Player player, String message) {
+        return itemShareService == null
+                ? ItemShareService.DiscordRenderResult.plain(message)
+                : itemShareService.renderDiscordRich(player, message);
+    }
+
     public static boolean hasInteractivePlaceholders(String message) {
         return itemShareService != null && itemShareService.hasPlaceholders(message);
     }

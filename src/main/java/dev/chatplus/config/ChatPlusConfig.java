@@ -4,10 +4,13 @@ import dev.chatplus.chat.ChatCategory;
 import dev.chatplus.chat.ChatMode;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +23,7 @@ public final class ChatPlusConfig {
     private String mentionPrefix;
     private boolean mentionCaseSensitive;
     private boolean mentionMatchWithoutPrefix;
+    private ChatFormatSettings chatFormat;
     private EnumMap<ChatMode, EnumSet<ChatCategory>> modeDefaults;
     private String notificationFormat;
     private String broadcastFormat;
@@ -53,6 +57,7 @@ public final class ChatPlusConfig {
         }
         mentionCaseSensitive = config.getBoolean("mentions.case-sensitive", false);
         mentionMatchWithoutPrefix = config.getBoolean("mentions.match-without-prefix", false);
+        chatFormat = readChatFormat(config);
         modeDefaults = readModeDefaults(config);
         notificationFormat = string(config.getString("notifications.format"), "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}");
         broadcastFormat = string(config.getString("notifications.broadcast-format"), "&#2b98fdChatPlus &8› &7{category_label} &8› &f{message}");
@@ -87,11 +92,19 @@ public final class ChatPlusConfig {
                 string(config.getString(base + "permission"), "chatplus.item"),
                 string(config.getString(base + "off-hand-permission"), "chatplus.item.offhand"),
                 string(config.getString(base + "bypass-cooldown-permission"), "chatplus.item.bypass-cooldown"),
-                string(config.getString(base + "display.format"), "&8[&f{name}{amount}&8]"),
+                string(config.getString(base + "display.format"), "&8[&f{item}{amount}&8]"),
                 string(config.getString(base + "display.plain-format"), "[{name}{amount}]"),
-                string(config.getString(base + "display.discord-format"), "**{name}{amount}**"),
+                string(config.getString(base + "display.discord-format"), "{name}{amount}"),
                 string(config.getString(base + "display.amount-format"), " &7x{amount}"),
                 config.getBoolean(base + "display.show-amount", true),
+                ItemHoverMode.from(config.getString(base + "hover.mode", "item")),
+                stringList(config, base + "hover.text", List.of(
+                        "&#57F287{name}{amount}",
+                        "&7Type: &f{material}",
+                        "{durability}",
+                        "{enchants}",
+                        "{lore}"
+                )),
                 ItemClickAction.from(config.getString(base + "click.action", "suggest")),
                 config.getBoolean(base + "click.shift-click-insertion", true),
                 string(config.getString(base + "messages.no-permission"), "&#ED4245You cannot share items in chat."),
@@ -100,6 +113,48 @@ public final class ChatPlusConfig {
                 string(config.getString(base + "messages.too-many-items"), "&7You can share up to &#2b98fd{max} &7item per message."),
                 string(config.getString(base + "messages.unavailable"), "&#ED4245Could not read your held item. Try again.")
         );
+    }
+
+    private ChatFormatSettings readChatFormat(FileConfiguration config) {
+        String base = "chat.";
+        return new ChatFormatSettings(
+                config.getBoolean(base + "enabled", true),
+                string(config.getString(base + "format"), "{prefix}{display_name}{suffix} &8> &f{message}"),
+                orderedStringMap(config.getConfigurationSection(base + "permission-formats")),
+                orderedStringMap(config.getConfigurationSection(base + "group-formats")),
+                config.getBoolean(base + "luckperms.enabled", true),
+                string(config.getString(base + "luckperms.fallback-prefix"), ""),
+                string(config.getString(base + "luckperms.fallback-suffix"), ""),
+                string(config.getString(base + "luckperms.fallback-primary-group"), "default"),
+                config.getBoolean(base + "placeholderapi.enabled", true),
+                config.getBoolean(base + "names.use-paper-display-name", true),
+                string(config.getString(base + "names.fallback-color"), "&f"),
+                config.getBoolean(base + "message-colors.enabled", false),
+                string(config.getString(base + "message-colors.legacy-permission"), "chatplus.color"),
+                string(config.getString(base + "message-colors.hex-permission"), "chatplus.hex"),
+                config.getBoolean(base + "player-hover.enabled", true),
+                stringList(config, base + "player-hover.lines", List.of(
+                        "&7Player: &f{username}",
+                        "&7Group: &f{primary_group}",
+                        "&7World: &f{world}"
+                )),
+                ChatClickAction.from(config.getString(base + "player-click.action", "suggest")),
+                string(config.getString(base + "player-click.value"), "/msg {username} ")
+        );
+    }
+
+    private Map<String, String> orderedStringMap(ConfigurationSection section) {
+        if (section == null) {
+            return Map.of();
+        }
+        Map<String, String> values = new LinkedHashMap<>();
+        for (String key : section.getKeys(false)) {
+            String value = section.getString(key);
+            if (value != null && !value.isBlank()) {
+                values.put(key, value);
+            }
+        }
+        return Collections.unmodifiableMap(new LinkedHashMap<>(values));
     }
 
     private ViewShareSettings readViewShare(
@@ -204,6 +259,10 @@ public final class ChatPlusConfig {
         return mentionMatchWithoutPrefix;
     }
 
+    public ChatFormatSettings chatFormat() {
+        return chatFormat;
+    }
+
     public String notificationFormat() {
         return notificationFormat;
     }
@@ -277,6 +336,62 @@ public final class ChatPlusConfig {
         }
     }
 
+    public enum ItemHoverMode {
+        TEXT,
+        ITEM;
+
+        public static ItemHoverMode from(String value) {
+            if (value == null || value.isBlank()) {
+                return ITEM;
+            }
+            try {
+                return ItemHoverMode.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+            } catch (IllegalArgumentException ignored) {
+                return ITEM;
+            }
+        }
+    }
+
+    public enum ChatClickAction {
+        NONE,
+        SUGGEST,
+        RUN,
+        COPY;
+
+        public static ChatClickAction from(String value) {
+            if (value == null || value.isBlank()) {
+                return SUGGEST;
+            }
+            try {
+                return ChatClickAction.valueOf(value.trim().toUpperCase(Locale.ROOT).replace('-', '_'));
+            } catch (IllegalArgumentException ignored) {
+                return SUGGEST;
+            }
+        }
+    }
+
+    public record ChatFormatSettings(
+            boolean enabled,
+            String format,
+            Map<String, String> permissionFormats,
+            Map<String, String> groupFormats,
+            boolean luckPermsEnabled,
+            String fallbackPrefix,
+            String fallbackSuffix,
+            String fallbackPrimaryGroup,
+            boolean placeholderApiEnabled,
+            boolean usePaperDisplayName,
+            String fallbackNameColor,
+            boolean messageColorsEnabled,
+            String legacyColorPermission,
+            String hexColorPermission,
+            boolean playerHoverEnabled,
+            List<String> playerHoverLines,
+            ChatClickAction playerClickAction,
+            String playerClickValue
+    ) {
+    }
+
     public record ItemShareSettings(
             boolean enabled,
             boolean caseSensitive,
@@ -292,6 +407,8 @@ public final class ChatPlusConfig {
             String discordFormat,
             String amountFormat,
             boolean showAmount,
+            ItemHoverMode hoverMode,
+            List<String> hoverText,
             ItemClickAction clickAction,
             boolean shiftClickInsertion,
             String noPermissionMessage,

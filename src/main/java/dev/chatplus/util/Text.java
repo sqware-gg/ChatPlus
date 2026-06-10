@@ -2,6 +2,7 @@ package dev.chatplus.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
@@ -28,6 +29,14 @@ public final class Text {
 
     public static Component component(String text) {
         return LEGACY_COMPONENTS.deserialize(color(text));
+    }
+
+    public static String render(String template, Map<String, String> placeholders) {
+        String rendered = template == null ? "" : template;
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            rendered = rendered.replace("{" + entry.getKey() + "}", entry.getValue() == null ? "" : entry.getValue());
+        }
+        return rendered;
     }
 
     private static String replaceHex(String text) {

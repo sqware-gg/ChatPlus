@@ -21,10 +21,10 @@
     </licenses>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>${java.version}</maven.compiler.release>
-        <paper.version>1.18.2-R0.1-SNAPSHOT</paper.version>
+        <paper.version>26.1.2.build.69-stable</paper.version>
     </properties>
 
     <repositories>
